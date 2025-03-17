@@ -1,344 +1,339 @@
-# Esperanto-Kanji-Converter-and-Ruby-Annotation-Tool-Beta
+# HƯỚNG DẪN SỬ DỤNG CÔNG CỤ THAY THẾ VÀ CHÚ THÍCH CHO VĂN BẢN ESPERANTO
+
+## MỤC LỤC
+1. Giới thiệu chung
+2. Chức năng chính
+3. Hướng dẫn sử dụng trang chính
+4. Hướng dẫn tạo tệp JSON riêng
+5. Các tính năng nâng cao
+6. Ví dụ ứng dụng
+7. Giải đáp thắc mắc thường gặp
 
 ---
 
-## 目次
-1. **アプリ概要**
-2. **アプリを構成するページ（画面）について**
-   - 2.1. メインページ：エスペラント文の置換・ルビ振りツール（`main.py`）
-   - 2.2. サブページ：置換用JSONファイル生成ツール（`エスペラント文(漢字)置換用のJSONファイル生成ページ.py`）
-   - 2.3. 補助モジュールコード（`esp_text_replacement_module.py`・`esp_replacement_json_make_module.py`）
-3. **メインページの使い方 (エスペラント文の置換・ルビ振り)**
-   1. JSONファイルの読み込み方法選択
-   2. プレースホルダー(占位符)の読み込みについて
-   3. 高度な設定（並列処理）
-   4. 出力形式を選択する
-   5. 入力テキストの準備
-   6. 変換を実行
-   7. 結果のプレビュー・ダウンロード
-   8. GitHubリポジトリへのリンク
-4. **サブページの使い方 (置換用JSONファイルの生成)**
-   1. 画面冒頭の概要説明
-   2. サンプルファイル(各種CSV, JSON, Excel)のダウンロード
-   3. 出力形式(“HTML形式”や“括弧形式”など)の指定
-   4. CSVファイルをアップロードまたはデフォルト使用
-   5. JSONファイル（語根分解法や置換後文字列設定）をアップロードまたはデフォルト使用
-   6. 高度な設定（並列処理）
-   7. 置換用JSONファイルを作成→ダウンロード
-5. **よくある疑問（Q&A）**
-   - A. `%...%`・`@...@` で囲む意味
-   - B. “並列処理を使う” チェックを入れるべきかどうか
-   - C. ダウンロードしたファイル（.json / .csv / .htmlなど）の使い方
-6. **注意点・トラブルシューティング**
+## 1. GIỚI THIỆU CHUNG
+
+Công cụ này được thiết kế để hỗ trợ người học và sử dụng tiếng Esperanto, giúp thay thế văn bản Esperanto bằng ký tự Kanji (chữ Hán) hoặc tạo chú thích (ruby) cho từng từ. Phần mềm hoạt động trên nền tảng Streamlit, cho phép bạn:
+
+- Chuyển đổi văn bản Esperanto sang dạng có chú thích ký tự Kanji (chữ Hán)
+- Thêm chú thích HTML kiểu Ruby (chữ nhỏ hiển thị trên từng từ)
+- Tùy chỉnh định dạng hiển thị (HTML, dấu ngoặc, v.v.)
+- Tạo và chỉnh sửa tệp JSON chứa quy tắc thay thế riêng
+
+Ứng dụng này đặc biệt hữu ích cho người học tiếng Esperanto, giúp liên kết trực quan giữa từ gốc Esperanto và ý nghĩa thông qua chú thích bằng chữ Hán hoặc ngôn ngữ khác như tiếng Việt.
 
 ---
 
-## 1. アプリ概要
+## 2. CHỨC NĂNG CHÍNH
 
-このアプリは、以下の2つの主要な機能を提供します。
+### 2.1. Thay thế và chú thích văn bản
 
-1. **「エスペラント文を、指定ルールに従って(漢字)置換したり、HTML形式の訳ルビを振ったりする」**  
-   - メインページ（`main.py`）で提供される機能で、ユーザーが手動入力あるいはテキストファイルをアップロードし、さらに置換ルールを示すJSONファイルを指定することで、一括してエスペラント文章の文字列（漢字）置換やルビ振りを行うツールです。処理後のテキストを画面上に表示するほか、HTML形式などでダウンロードできます。  
+- **Thay thế từ gốc**: Chuyển đổi các từ gốc Esperanto thành chữ Hán/Kanji hoặc bản dịch tiếng Việt
+- **Chú thích Ruby**: Hiển thị ý nghĩa của từ dưới dạng chú thích nhỏ phía trên
+- **Đa dạng định dạng**: Hỗ trợ hiển thị kết quả theo nhiều kiểu (HTML, dấu ngoặc, v.v.)
+- **Xử lý ký tự đặc biệt**: Hỗ trợ đầy đủ các ký tự đặc thù của Esperanto (ĉ, ĝ, ĥ, ĵ, ŝ, ŭ)
 
-2. **「置換用JSONファイル（大量の置換ルール）を生成する」**  
-   - サブページ（`エスペラント文(漢字)置換用のJSONファイル生成ページ.py`）で提供される機能で、エスペラント語根と訳語や漢字との対応関係をまとめたCSVファイルなどを用い、最終的に置換に使う大規模なJSON（ルール）ファイルを作り上げることができます。このファイルを作成しておけば、メインページでの置換処理時にアップロードして活用できるようになります。
+### 2.2. Tạo tệp JSON thay thế
 
-さらに内部実装として、**`esp_text_replacement_module.py`** と **`esp_replacement_json_make_module.py`** という2つのモジュールが用意されています。これらにはテキストの正規化や、ルビ付けロジック、多数のエスペラント語根を漢字に置換するための汎用的な関数・並列処理などが含まれており、メインページ・サブページ双方で呼び出されます。通常のGUI利用においては、これらのモジュールを直接操作する必要はありませんが、「どういう仕組みで置換が行われているのか」を深く理解したいときに参照できます。
+- Tạo tệp JSON chứa quy tắc thay thế từ gốc Esperanto
+- Tùy chỉnh cách phân tách gốc từ và định dạng hiển thị
+- Hợp nhất nhiều danh sách thay thế khác nhau
 
----
+### 2.3. Xử lý nâng cao
 
-## 2. アプリを構成するページ（画面）について
-
-### 2.1. メインページ：エスペラント文の置換・ルビ振りツール（`main.py`）
-
-- ページタイトル：**「エスペラント文を漢字置換したり、HTML形式の訳ルビを振ったりする (拡張版)」**  
-- 主な機能：
-  1. 置換ルールのJSONファイルを読み込む（デフォルトまたはアップロード）
-  2. テキストの入力方法（手動入力 or ファイルアップロード）を選択
-  3. 文字列を(漢字)置換する際の形式(HTMLルビ、括弧形式 など)を指定
-  4. `%...%` で囲んだ箇所を「置換スキップ」、`@...@` で囲んだ箇所を「局所置換」する機能
-  5. 並列処理のオン/オフやプロセス数の設定
-  6. 結果のプレビュー表示、またはダウンロード（HTML形式など）
-
-### 2.2. サブページ：置換用JSONファイル生成ツール（`エスペラント文(漢字)置換用のJSONファイル生成ページ.py`）
-
-- ページタイトル：**「エスペラント文の(漢字)置換に用いるJSONファイルを生成する」**  
-- 主な機能：
-  1. CSVやカスタムJSON設定ファイルをアップロード（またはデフォルト使用）
-  2. エスペラント語根と漢字・日本語訳ルビなどの対応表を編集して大規模JSONルールを作る
-  3. サンプルファイルを多数ダウンロードできるように提供（CSVやJSON、Excel 等）
-  4. 最終的な置換用JSONファイルをダウンロード可能
-
-### 2.3. 補助モジュール（`esp_text_replacement_module.py`・`esp_replacement_json_make_module.py`）
-
-- **`esp_text_replacement_module.py`**  
-  メインページでの実際の置換を行う関数群、例：
-  - `orchestrate_comprehensive_esperanto_text_replacement`: スペースの正規化→字上符形式への変換→スキップ箇所・局所置換箇所の処理→大域置換…といった処理を一括で行うメイン関数
-  - `%...%` や `@...@` に関連するスキップ/局所置換の仕組み
-  - 並列処理で行を分割して高速に変換する `parallel_process` など
-
-- **`esp_replacement_json_make_module.py`**  
-  サブページでの置換ルールJSON作成を行う関数群、例：
-  - `parallel_build_pre_replacements_dict`: 大量の語根データを並列処理で一括変換
-  - `output_format`: “HTMLルビ形式”や “括弧(号)形式”など、ユーザー指定の形式に応じた文字列整形
-  - CSVやJSONを読み込み、内部的に大きな置換リストを統合した最終JSONを作る
+- Hỗ trợ xử lý song song để tăng tốc độ với văn bản dài
+- Cho phép bảo vệ một số phần văn bản không bị thay thế (sử dụng dấu %)
+- Cho phép thay thế cục bộ chỉ trong phạm vi đoạn văn bản nhất định (sử dụng dấu @)
 
 ---
 
-## 3. メインページの使い方 (エスペラント文の置換・ルビ振り)
+## 3. HƯỚNG DẪN SỬ DỤNG TRANG CHÍNH
 
-それでは、実際に**メインページ**（プログラムの中心となる `main.py`）のGUI上での操作手順を、画面に沿って説明します。
+### 3.1. Giao diện trang chính
 
----
+Khi mở ứng dụng, bạn sẽ thấy tiêu đề "Thay thế văn bản Esperanto bằng ký tự Kanji hoặc thêm chú thích HTML (phiên bản mở rộng)" và các phần cài đặt bên dưới.
 
-### 3.1. JSONファイルの読み込み方法選択
+### 3.2. Các bước cơ bản
 
-1. 画面上部にあるラジオボタン  
-   **「JSONファイルをどうしますか？ (置換用JSONファイルの読み込み)」**  
-   - 「デフォルトを使用する」  
-   - 「アップロードする」  
+#### Bước 1: Chọn tệp JSON để sử dụng cho việc thay thế
 
-2. 通常は試しに「デフォルトを使用する」を選ぶだけでもOKです。  
-   もしすでに自分が用意したJSONファイル（多数の置換ルールを含むもの）を利用したい場合は、「アップロードする」を選んでファイルを指定してください。
+```
+Bạn muốn xử lý tệp JSON như thế nào? (Đọc tệp JSON để thay thế)
+```
 
-3. JSONが正常に読み込まれると「デフォルトJSONの読み込みに成功しました。」（または「アップロードしたJSONの読み込みに成功しました。」）と表示されます。
+- **Sử dụng tệp JSON mặc định**: Hệ thống sẽ sử dụng tệp JSON có sẵn chứa các quy tắc thay thế cơ bản
+- **Tải tệp lên**: Nếu bạn đã có tệp JSON tùy chỉnh, bạn có thể tải lên để sử dụng
 
-4. **参考**：サンプルJSONファイルを入手したい場合、ページ内に「サンプルJSON(置換用JSONファイル)ダウンロード」ボタンもあります。必要に応じてダウンロード→編集してみてください。
+Bạn cũng có thể tải xuống tệp JSON mẫu bằng cách mở mục "Tải xuống tệp JSON ví dụ (để thay thế)".
 
----
+#### Bước 2: Cài đặt nâng cao (tùy chọn)
 
-### 3.2. プレースホルダー(占位符)の読み込みについて
+Mở mục "Cài đặt nâng cao (xử lý song song)" nếu bạn muốn xử lý văn bản dài hoặc phức tạp:
 
-- 画面内で、`import_placeholders(...)` を呼び出している部分があります。  
-  具体的には、  
-  - `%...%` で囲まれた箇所を置換スキップするためのプレースホルダー  
-  - `@...@` で囲まれた箇所を局所置換するためのプレースホルダー  
-  を読み込んでいます。これはプログラム内部で自動的に行われるので、ユーザーが意識して操作する必要はありません。
+- **Sử dụng chế độ xử lý song song**: Đánh dấu vào ô này để kích hoạt xử lý đa luồng
+- **Số tiến trình chạy cùng lúc**: Chọn số lượng tiến trình (2-4) tùy theo cấu hình máy tính của bạn
 
-- 要点だけ押さえておくと、**「%で囲むとその部分の文字列は一切置換されずにそのまま残る」**、**「@で囲むと、その部分の文字列だけ局所的に別のリストで置換される」** という仕組みです。（詳細は後述Q&A参照）
+#### Bước 3: Chọn định dạng đầu ra
 
----
+```
+Chọn định dạng đầu ra (giống với định dạng được chỉ định trong tệp JSON thay thế):
+```
 
-### 3.3. 高度な設定（並列処理）
+Các tùy chọn định dạng:
+- **Định dạng HTML với chú thích Ruby và điều chỉnh kích thước**: Hiển thị từ gốc Esperanto với chú thích phía trên, tự động điều chỉnh kích thước
+- **Định dạng HTML với chú thích Ruby, điều chỉnh kích thước và thay thế ký tự Kanji**: Hiển thị chữ Hán/Kanji làm từ chính với chú thích Esperanto phía trên
+- **Định dạng HTML**: Dạng HTML cơ bản không điều chỉnh kích thước
+- **Định dạng HTML với thay thế ký tự Kanji**: Dạng HTML với chữ Hán/Kanji làm từ chính
+- **Định dạng sử dụng dấu ngoặc**: Hiển thị dạng "từ_gốc(chú_thích)"
+- **Định dạng dấu ngoặc với thay thế ký tự Kanji**: Hiển thị dạng "chữ_Hán(từ_gốc)"
+- **Chỉ giữ lại văn bản đã được thay thế**: Chỉ hiển thị chữ Hán/bản dịch mà không giữ từ gốc
 
-- 画面下のほうに、**「高度な設定 (並列処理)」** という項目があります。  
-- ここで「並列処理を使う」にチェックを入れると、内部的に複数プロセス（CPUコア）を使ってテキスト置換を並列実行します。処理速度を速めたい大きなテキストに対して有効ですが、サーバ環境・クラウド環境によっては動作制限がある場合もあります。  
-- 「同時プロセス数」は2～4あたりが推奨です。あまり大きくしてもかえってオーバーヘッドが増え、速度が落ちる可能性があります。
+#### Bước 4: Cung cấp văn bản đầu vào
 
----
+```
+Nguồn văn bản đầu vào
+```
 
-### 3.4. 出力形式を選択する
+- **Nhập thủ công**: Nhập trực tiếp văn bản Esperanto vào ô văn bản
+- **Tải tệp lên**: Tải lên tệp văn bản (.txt, .csv, .md) có mã hóa UTF-8
 
-- **「出力形式を選択(置換用JSONファイルを作成したときと同じ形式を選択):」**  
-  下記のようなリストから希望の形式を選べます。
-  1. HTML格式_Ruby文字_大小调整
-  2. HTML格式_Ruby文字_大小调整_汉字替换
-  3. HTML格式
-  4. HTML格式_汉字替换
-  5. 括弧(号)格式
-  6. 括弧(号)格式_汉字替换
-  7. 替换后文字列のみ(仅)保留(简单替换)
+#### Bước 5: Nhập văn bản và cài đặt thêm
 
-- **例1**：  
-  「HTML格式_Ruby文字_大小调整」を選ぶと、  
-  ```html
-  <ruby>Esperant<rt class="S_S">エスペラント</rt></ruby>
-  ```
-  のようにエスペラント部分とルビ（訳語や漢字）とを1つの`<ruby>...</ruby>`タグでまとめ、ブラウザ上でルビ表示できるHTMLを得られます。  
-- **例2**：  
-  「括弧(号)格式」を選んだ場合は単純に  
-  ```
-  Esperant(エスペラント)
-  ```
-  というテキストになります。  
-- **例3**：  
-  「...汉字替换」と記載のある形式を選ぶと、メイン部分を漢字としてルビにエスペラント語根を振る・あるいはその逆…といった出力となります。
+```
+Vui lòng nhập văn bản Esperanto tại đây
+```
 
----
+- Nhập hoặc dán văn bản Esperanto cần xử lý
+- Chọn cách hiển thị các ký tự đặc thù của Esperanto:
+  - **Ký hiệu mũ trên chữ cái** (ĉ): Hiển thị dạng mũ trên chữ cái
+  - **Định dạng x** (cx): Hiển thị dạng "x" sau chữ cái (cx thay cho ĉ)
+  - **Định dạng ^** (c^): Hiển thị dạng "^" sau chữ cái (c^ thay cho ĉ)
 
-### 3.5. 入力テキストの準備
+#### Bước 6: Xử lý và tải kết quả
 
-- **「入力テキストのソース」**  
-  ラジオボタンで、  
-  1. **「手動入力」**  
-  2. **「ファイルアップロード」**  
-  を選択できます。
+- Nhấn nút **Gửi** để bắt đầu xử lý
+- Xem kết quả trong các tab hiển thị bên dưới
+- Nhấn nút **Tải xuống kết quả** để lưu kết quả dưới dạng tệp HTML
 
-- **ファイルアップロード** を選んだ場合：
-  - 「テキストファイルをアップロード (UTF-8)」 というファイル選択が表示されるので、手元の`.txt`、`.md`、`.csv`など、UTF-8形式のファイルをアップロードします。
-  - 正常に読み込まれると「ファイルを読み込みました。」と表示されます。
+### 3.3. Tính năng đặc biệt với dấu % và @
 
-- **手動入力** を選んだ場合：
-  - 画面の「テキストエリア」が表示されます。ここに直接エスペラントの文章をペースト/入力してください。
+```
+Nếu bạn bao một phần văn bản trong dấu %, thì phần đó sẽ không được thay thế và vẫn giữ nguyên trong kết quả cuối cùng.
+
+Tương tự, nếu bạn bao một phần văn bản trong dấu @, thì phần đó sẽ được thay thế cục bộ (chỉ trong phạm vi đoạn đó).
+```
+
+#### Ví dụ:
+- `La %plej bona% tago.` - Cụm từ "plej bona" sẽ không bị thay thế
+- `La @bela@ tago.` - Từ "bela" sẽ được thay thế theo quy tắc riêng, độc lập với phần còn lại
 
 ---
 
-### 3.6. 変換を実行
+## 4. HƯỚNG DẪN TẠO TỆP JSON RIÊNG
 
-1. **テキストエリア** にエスペラント文を入力し終えたら、ページ下部のフォーム内にある
-   - **「出力文字形式」（上付き文字 / x形式 / ^形式）**  
-     たとえば「上付き文字」を選べば、エスペラントの ĉ が `c` + 上付きアクセントの形で表示されるよう再変換します。  
-     （`cx` → `ĉ` → `c`＋上付き 等、最終的にどうエスペラント特有文字を表示するかを調節可能）
-   - **「送信」ボタン**  
-     を押します。
-2. ボタンを押すと、内部で
-   - `%...%` や `@...@` の保護・局所置換
-   - 大域的な漢字置換
-   - 2文字語根の追加置換
-   - そして最終的に選択した形式(HTML or 括弧)への整形
-   などの処理が順に行われます。
+Nếu bạn muốn tùy chỉnh cách thay thế văn bản Esperanto, bạn có thể tạo tệp JSON riêng. Truy cập trang "Tạo tệp JSON dùng để thay thế (chữ Hán) trong văn bản Esperanto" trong menu bên trái.
 
----
+### 4.1. Giao diện trang tạo JSON
 
-### 3.7. 結果のプレビュー・ダウンロード
+Trang này cho phép bạn tạo tệp JSON tùy chỉnh với quy tắc thay thế riêng.
 
-- 変換が完了すると、画面下部に**「置換結果」**が表示されます。  
-  - テキスト行数が多い場合はプレビューを一部省略している場合があります（例：先頭247行＋末尾3行だけ表示し「...」とするなど）。
-- 出力形式を **HTML** にした場合はタブ形式で「HTMLプレビュー」と「HTMLソースコード」を確認できます。  
-- **「置換結果のダウンロード」** ボタンを押すと、`.html`ファイルなどとしてダウンロードできます。  
-  （場合によっては拡張子`.txt`を指定しても問題ありません。お好みで保存後に拡張子を変えることも可能です。）
+### 4.2. Các bước tạo tệp JSON
 
----
+#### Bước 1: Chuẩn bị tệp CSV
 
-### 3.8. GitHubリポジトリへのリンク
+```
+Bước 1: Chuẩn bị tệp CSV
+```
 
-- ページ最下部に **「アプリのGitHubリポジトリ」** というリンクがあり、クリックするとGitHub上のソースコードページに移動できます。  
-- このアプリ全体のコードを参照したり、細部の実装を確認したい場合に活用してください。
+- **Tải lên tệp CSV**: Tải lên tệp CSV chứa từng dòng tương ứng gốc từ Esperanto và nghĩa/chữ Hán
+- **Sử dụng mặc định**: Sử dụng tệp CSV mẫu có sẵn
 
----
+Định dạng CSV cần có ít nhất hai cột:
+- Cột 1: Từ gốc Esperanto
+- Cột 2: Bản dịch/chữ Hán tương ứng
 
-## 4. サブページの使い方 (置換用JSONファイルの生成)
+#### Bước 2: Chuẩn bị tệp JSON về quy tắc phân tách gốc từ
 
-次に、Streamlit特有の「pages」フォルダに配置されている**サブページ**（`エスペラント文(漢字)置換用のJSONファイル生成ページ.py`）についてです。ページのタイトルは「エスペラント文の(漢字)置換に用いるJSONファイルを生成する」。ここでは、大量のエスペラント語根と漢字・日本語訳などを対応づけた「置換用JSONファイル」を自前で作りたい場合に利用します。
+```
+Bước 2: Chuẩn bị tệp JSON (quy tắc phân tách gốc từ, v.v.)
+```
 
----
+- **Tải lên tệp JSON**: Tải lên tệp JSON chứa quy tắc phân tách gốc từ Esperanto
+- **Sử dụng mặc định**: Sử dụng tệp JSON mẫu có sẵn
 
-### 4.1. 画面冒頭の概要説明
+Sau đó, cần chọn tệp JSON về chuỗi thay thế riêng:
+- **Tải lên tệp JSON**: Tải lên tệp JSON chứa chuỗi thay thế tùy chỉnh
+- **Sử dụng mặc định**: Sử dụng tệp JSON mẫu có sẵn
 
-- サブページを開くと、まず **「使い方の説明を開く」** という折り畳みがあり、以下のような流れで使用することを推奨しています。
-  1. 必要な **CSVファイル**（エスペラント語根→日本語訳/漢字 などの対応表）をアップロードするか、デフォルトを使用する
-  2. 必要に応じて **JSONファイル**（語根分解ルールや置換後文字列などカスタム設定）をアップロードするか、デフォルトを使用する
-  3. 出力形式を選択（「HTML形式」「括弧形式」「替换後文字列のみ」等）
-  4. 最終的に生成された **置換用JSONファイル**をダウンロードして、メインページで使う
+#### Bước 3: Cài đặt nâng cao (tùy chọn)
 
----
+```
+Bước 3: Cài đặt nâng cao (xử lý song song)
+```
 
-### 4.2. サンプルファイル(各種CSV, JSON, Excel)のダウンロード
+- **Sử dụng xử lý song song**: Đánh dấu để kích hoạt xử lý đa luồng
+- **Số tiến trình chạy đồng thời**: Chọn số lượng tiến trình (2-6)
 
-- 「サンプルファイル一覧(ダウンロード用)」という折り畳みを開くと、多数のサンプルファイルがリストアップされています。  
-  - **サンプルCSV1：エスペラント語根-日本語訳ルビ対応リスト**  
-  - **サンプルCSV2：エスペラント語根-漢字対応リスト(Mingeo氏案)**  
-  - **サンプルJSON1：エスペラント単語語根分解法ユーザー設定**  
-  - **サンプルJSON2：置換後文字列のユーザー設定**（あまり推奨されない設定も含む例）  
-  - **サンプルExcel：エスペラント語根-日本語訳ルビ対応リスト(習得レベル付き)**  
-- 各ボタンを押すとそのままファイルをダウンロード可能です。  
-  例：「エスペラント語根-日本語訳ルビ対応リスト.csv」をダウンロードし、中身をExcelなどで開いてみると、`Esperant, エスペラント` のような対応が記録されています。
+#### Bước 4: Tạo tệp JSON
 
----
+- Nhấn nút **Tạo tệp JSON để thay thế**
+- Đợi quá trình xử lý hoàn tất (có thể mất vài phút với dữ liệu lớn)
+- Sau khi hoàn tất, hệ thống sẽ hiển thị nút **Tải xuống danh sách thay thế cuối cùng**
 
-### 4.3. 出力形式(“HTML形式”や“括弧形式”など)の指定
+### 4.3. Hiểu về cấu trúc tệp JSON
 
-- 画面中ほどに**「出力形式を選択」**するプルダウン（セレクトボックス）があります。
-- **「HTML格式_Ruby文字_大小调整」** などを選択すると、語根にルビを付けるHTML形式を事前に作ってくれます。（メインページで同じ形式を選択する想定）
-- **「括弧(号)格式」** や **「替换后文字列のみ(仅)保留(简单替换)」** など、好みのスタイルに合わせて出力テキスト形式を整えたJSONルールを作成できます。
+Tệp JSON được tạo ra sẽ chứa ba danh sách chính:
+- **全域替换用のリスト**: Danh sách dùng cho thay thế toàn cục
+- **局部文字替换用のリスト**: Danh sách dùng cho thay thế cục bộ
+- **二文字词根替换用のリスト**: Danh sách dùng cho thay thế gốc từ 2 chữ cái
+
+Mỗi mục trong danh sách thường có dạng: `[từ_gốc, bản_thay_thế, placeholder]`
 
 ---
 
-### 4.4. CSVファイルをアップロードまたはデフォルト使用
+## 5. CÁC TÍNH NĂNG NÂNG CAO
 
-- **「ステップ１: CSVファイルを準備」** の項目
-  - ここでエスペラント語根と日本語訳/漢字等を対応づけたCSVを指定します。
-  - 「アップロードする」か「デフォルトを使用する」かの選択肢があります。  
-- CSVをアップロードした場合は内部で `convert_to_circumflex(...)` などが走り、x表記などが字上符形式に統一されます。
-- デフォルトを使用する場合は、サンプルとして用意した `./Appの运行に使用する各类文件/エスペラント語根-日本語訳ルビ対応リスト.csv` を読み込みます。
+### 5.1. Xử lý song song
 
----
+Để xử lý văn bản dài, bạn có thể bật chế độ xử lý song song. Tính năng này phân tách văn bản thành nhiều đoạn và xử lý đồng thời, giúp giảm đáng kể thời gian xử lý.
 
-### 4.5. JSONファイル（語根分解法や置換後文字列設定）をアップロードまたはデフォルト使用
+```
+Cài đặt nâng cao (xử lý song song)
+```
 
-- **「ステップ2: JSONファイル(語根分解法など)を準備」**  
-  1. 「エスペラント単語の語根分解法を追加指定するJSONファイル」  
-  2. 「置換後文字列を追加指定するJSONファイル」  
-  の2種類をここでアップロード可能です。  
-- もし**独自に用意した語根分解ルール**や**特殊な形での置換（例: 特定の単語だけ特別な漢字にしたい）**を反映させたい場合は、それぞれをJSONファイルに書いてアップロードします。  
-- 特にこだわりがなければ「デフォルトを使用する」だけでも多くの語根をカバーできます。
+- **Sử dụng chế độ xử lý song song**: Bật/tắt xử lý đa luồng
+- **Số tiến trình chạy cùng lúc**: Chọn số lượng tiến trình phù hợp với CPU của bạn
 
----
+### 5.2. Bảo vệ và thay thế cục bộ
 
-### 4.6. 高度な設定（並列処理）
+Ứng dụng cho phép bạn kiểm soát chính xác cách thay thế từng phần của văn bản:
 
-- **「ステップ3: 高度な設定 (並列処理)」**  
-  こちらもメインページ同様、複数プロセスを使って大規模なデータを素早く処理するための設定です。  
-- `num_processes` を **2～6** のあいだで指定できます。  
-- 大量の語根データ（約4万4千行など）を扱う場合は大幅に時間短縮が見込まれますが、環境によってはCPU負荷が高まることもあるため注意してください。
+#### Bảo vệ nội dung (dấu %)
 
----
+```
+Nếu bạn bao một phần văn bản trong dấu % (ví dụ: %<tối đa 50 ký tự>%), thì phần đó sẽ không được thay thế và vẫn giữ nguyên trong kết quả cuối cùng.
+```
 
-### 4.7. 置換用JSONファイルを作成→ダウンロード
+Ví dụ:
+- Văn bản: `Mi amas %la bela floro% en la ĝardeno.`
+- Kết quả: Chỉ "Mi amas" và "en la ĝardeno" được thay thế, còn "la bela floro" giữ nguyên.
 
-1. 「置換用JSONファイルを作成する」ボタンを押すと、大量のステップを経て**最終的なJSON**を生成します。
-   - エスペラント語根→漢字/日本語の対応
-   - 語尾(a, o, e, n など)を自動で付与して優先度を上げるロジック
-   - ユーザーがアップロードしたカスタム設定の反映
-   - 2文字語根専用の扱い など
-2. 作成が完了すると、**「Download 最终的な替换用リスト(列表)(合并3个JSON文件)」** ボタンが現れますので、これを押してローカルにファイルを保存します。
-3. そのファイルはメインページで「JSONファイルをアップロードする」ときに読み込むことで、複雑な独自置換が実現できます。
+#### Thay thế cục bộ (dấu @)
 
----
+```
+Tương tự, nếu bạn bao một phần văn bản trong dấu @ (ví dụ: @<tối đa 18 ký tự>@), thì phần đó sẽ được thay thế cục bộ (chỉ trong phạm vi đoạn đó).
+```
 
-## 5. よくある疑問（Q&A）
+Ví dụ:
+- Văn bản: `La suno @brilas@ super la montoj.`
+- Kết quả: Từ "brilas" được thay thế theo quy tắc cục bộ, độc lập với ngữ cảnh chung.
 
-### A. `%...%`・`@...@` で囲む意味
+### 5.3. Tùy chỉnh cách hiển thị ký tự đặc biệt
 
-- **`%...%`**：囲まれた部分は、一切置換しない（スキップする）ための仕組みです。  
-  例：`Mi havas %nombro% da libroj.`  
-  → `%nombro%` 部分だけはそのまま残り、他の部分は置換ルールに従って変換されます。  
-- **`@...@`**：囲まれた部分だけを別の局所置換リストで処理します。  
-  例：`Mi @amas@ vin.`  
-  → `amas` のみ別ルールで置換するといった挙動が可能になります。  
-- これら2種類をうまく使うことで、「ここはあえて原文のまま残す」「ここは特別な置換を当てる」といった微調整ができます。
+```
+Chọn cách hiển thị các ký tự đặc thù của Esperanto trong kết quả
+```
 
-### B. “並列処理を使う” チェックを入れるべきかどうか
-
-- 一般的に、**文章量が多い場合**に並列処理をオンにすると高速化が期待できます。  
-- ただし、大量のCPUコアが使える環境なら有効ですが、処理ができない/制限される環境（特にクラウド版Streamlitや小規模環境など）ではエラーや速度低下を招くことがあるため、まずはオフのまま試すことをおすすめします。
-
-### C. ダウンロードしたファイル（.json / .csv / .htmlなど）の使い方
-
-- **`.json`ファイル（置換用JSON）**：メインページの「JSONファイルをアップロード」で使います。  
-- **`.csv`ファイル**：サブページで置換用ルールを作りたいときに再度読み込む、あるいはExcelやエディタで編集して新たなエスペラント語根の訳を追加するときに使います。  
-- **`.html`ファイル**：メインページの置換結果ダウンロードなどで得られます。ブラウザで開くと、ルビ表示がされる文章を確認できます。
+- **Ký hiệu mũ trên chữ cái**: ĉ, ĝ, ĥ, ĵ, ŝ, ŭ
+- **Định dạng x**: cx, gx, hx, jx, sx, ux
+- **Định dạng ^**: c^, g^, h^, j^, s^, u^
 
 ---
 
-## 6. 注意点・トラブルシューティング
+## 6. VÍ DỤ ỨNG DỤNG
 
-1. **テキストの文字コードはUTF-8推奨**  
-   ファイルアップロード時に文字化けの恐れがあるため、UTF-8のテキストをご準備ください。
+### 6.1. Ví dụ 1: Thay thế đơn giản với chú thích Ruby
 
-2. **ファイルが大きすぎる場合のプレビュー省略**  
-   出力が非常に長いと、プレビューが一部だけしか表示されず「...」と省略されます。必要であればダウンロード結果のHTMLファイル等をテキストエディタで開いてください。
+**Văn bản đầu vào:**
+```
+La suno brilas en la blua ĉielo. Birdo kantas sur la arbo.
+```
 
-3. **環境依存の問題**  
-   Parallel処理（multiprocessing）は一部環境（クラウド等）で制限される場合があります。うまく動作しないときはオフにしてみてください。
+**Cài đặt:**
+- Định dạng: Định dạng HTML với chú thích Ruby và điều chỉnh kích thước
+- Ký tự Esperanto: Ký hiệu mũ trên chữ cái
 
-4. **ルビがブラウザ依存でずれる場合**  
-   「HTML格式_Ruby文字_大小调整」のように凝ったルビ表示を使うと、ChromeやSafariでは期待通り表示されても、一部ブラウザではルビ文字のサイズが微妙にズレたりします。気になる場合はCSSを微調整するか、よりシンプルな形式（括弧形式など）をご利用ください。
+**Kết quả:**
+Văn bản hiển thị với từng từ Esperanto kèm chú thích ý nghĩa phía trên.
 
-5. **JSONファイルに書式ミスがある場合**  
-   アップロード時にエラーとなる場合があります。JSON構造が正しいかどうか、コンマやカギ括弧などが対応しているか確認してください。
+### 6.2. Ví dụ 2: Thay thế với chữ Hán làm từ chính
+
+**Văn bản đầu vào:**
+```
+Mi lernas Esperanton ĉiutage.
+```
+
+**Cài đặt:**
+- Định dạng: Định dạng HTML với chú thích Ruby, điều chỉnh kích thước và thay thế ký tự Kanji
+- Ký tự Esperanto: Định dạng x
+
+**Kết quả:**
+Chữ Hán được hiển thị làm từ chính với từ gốc Esperanto ở dạng chú thích nhỏ phía trên.
+
+### 6.3. Ví dụ 3: Sử dụng dấu % và @ để kiểm soát thay thế
+
+**Văn bản đầu vào:**
+```
+%La vortaro% estas tre @utila@ por la @lernantoj@.
+```
+
+**Cài đặt:**
+- Định dạng: Định dạng sử dụng dấu ngoặc
+- Ký tự Esperanto: Ký hiệu mũ trên chữ cái
+
+**Kết quả:**
+- "La vortaro" giữ nguyên không thay đổi
+- "utila" và "lernantoj" được thay thế theo quy tắc riêng
+- Các từ còn lại được thay thế bình thường
 
 ---
 
-# おわりに
+## 7. GIẢI ĐÁP THẮC MẮC THƯỜNG GẶP
 
-以上が本アプリ（メインページとサブページ）の詳細な使い方です。  
+### 7.1. Không thấy thay đổi sau khi xử lý?
 
-- **メインページ** で「実際のエスペラント文を一括変換」する  
-- **サブページ** で「自作のCSV/JSONを元に置換用JSONファイルを作り、より豊富な漢字化ルールを準備する」  
+- Kiểm tra tệp JSON đã được tải đúng cách
+- Đảm bảo từ gốc Esperanto có trong tệp JSON
+- Thử sử dụng tệp JSON mặc định để kiểm tra
 
-という流れでうまく活用してください。本アプリの構成要素や内部ロジックについてさらに踏み込んで学びたい場合は、同梱のモジュール（`esp_text_replacement_module.py`, `esp_replacement_json_make_module.py`）やGitHubリポジトリを参照すると、どのようにルビサイズ調整や並列処理が実装されているかご覧いただけます。
+### 7.2. Kết quả hiển thị không đúng ký tự Esperanto?
 
-もし操作で詰まった点やバグがあれば、**GitHubリポジトリのIssue**やコメント等で開発者に報告いただけると幸いです。  
+- Chọn lại cách hiển thị ký tự đặc thù phù hợp
+- Đảm bảo văn bản nguồn sử dụng mã hóa UTF-8
+- Thử chuyển đổi giữa các định dạng ký tự (ĉ, cx, c^)
 
-本説明書が、GUIユーザーの皆様にとってスムーズな利用の手助けとなれば幸いです。どうぞお役立てください。
+### 7.3. Thời gian xử lý quá lâu?
+
+- Bật chế độ xử lý song song
+- Tăng số lượng tiến trình (nếu máy tính có nhiều lõi CPU)
+- Chia nhỏ văn bản thành nhiều phần để xử lý riêng biệt
+
+### 7.4. Làm thế nào để tạo tệp CSV riêng?
+
+1. Tạo một tệp spreadsheet (Excel, Google Sheets, v.v.)
+2. Tạo hai cột: từ gốc Esperanto và bản dịch/chữ Hán
+3. Lưu dưới dạng CSV với mã hóa UTF-8
+4. Tải lên trong ứng dụng
+
+### 7.5. Cách khắc phục lỗi khi tạo tệp JSON?
+
+- Kiểm tra định dạng CSV (phải có đúng hai cột)
+- Đảm bảo không có ký tự đặc biệt gây xung đột
+- Sử dụng mã hóa UTF-8 cho tất cả các tệp
+- Thử sử dụng tệp mẫu có sẵn và chỉnh sửa dần
+
+---
+
+## LIÊN KẾT HỮU ÍCH
+
+Ứng dụng có các phiên bản ngôn ngữ khác và tài liệu hướng dẫn chi tiết tại các liên kết được liệt kê ở cuối trang. Đặc biệt:
+
+- **Phiên bản tiếng Việt**:
+  https://esperanto-kanji-converter-and-ruby-annotation-tool-vietnamese.streamlit.app/
+
+- **Tài liệu hướng dẫn trên GitHub (tiếng Việt)**:
+  https://github.com/TakafumiYamauchi/Esperanto-Kanji-Converter-and-Ruby-Annotation-Tool-Vietnamese
+
+---
+
+Chúc bạn sử dụng ứng dụng hiệu quả trong việc học và làm việc với tiếng Esperanto!
